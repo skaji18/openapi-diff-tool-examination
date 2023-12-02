@@ -19,7 +19,7 @@ diff petstore.yaml petstore-expanded.yaml
 
 #### 実行結果
 
-<deitals>
+<details>
 <summary>まともに見れないので折りたたみ</summary>
 
 ```
@@ -207,7 +207,7 @@ diff petstore.yaml petstore-expanded.yaml
 > 
 ```
 
-</detials>
+</details>
 
 
 ## 使い方

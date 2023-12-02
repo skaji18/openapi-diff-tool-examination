@@ -1,0 +1,125 @@
+# エンドポイントの増減
+
+## 前提
+
+### OpenAPIの元ファイル
+
+* petstore-expanded.yml
+  * https://github.com/OAI/OpenAPI-Specification/blob/bcb0c454cc4def694840593c5d88ce4fffe3fbdd/examples/v3.0/petstore-expanded.yaml
+
+### 作成したファイル
+
+* before.yml
+  * petstore-expanded.yml から変更なし
+* after.yml
+  * 上記 before.yml から以下を変更
+    * `POST /pets`を削除
+    * `GET /pets/{petId}`を削除
+    * `PUT /pets/{petId}`を追加
+
+<details>
+<summary>diffコマンドでの差分</summary>
+
+```
+18,56d17
+<     get:
+<       description: |
+<         Returns all pets from the system that the user has access to
+<         Nam sed condimentum est. Maecenas tempor sagittis sapien, nec rhoncus sem sagittis sit amet. Aenean at gravida augue, ac iaculis sem. Curabitur odio lorem, ornare eget elementum nec, cursus id lectus. Duis mi turpis, pulvinar ac eros ac, tincidunt varius justo. In hac habitasse platea dictumst. Integer at adipiscing ante, a sagittis ligula. Aenean pharetra tempor ante molestie imperdiet. Vivamus id aliquam diam. Cras quis velit non tortor eleifend sagittis. Praesent at enim pharetra urna volutpat venenatis eget eget mauris. In eleifend fermentum facilisis. Praesent enim enim, gravida ac sodales sed, placerat id erat. Suspendisse lacus dolor, consectetur non augue vel, vehicula interdum libero. Morbi euismod sagittis libero sed lacinia.
+< 
+<         Sed tempus felis lobortis leo pulvinar rutrum. Nam mattis velit nisl, eu condimentum ligula luctus nec. Phasellus semper velit eget aliquet faucibus. In a mattis elit. Phasellus vel urna viverra, condimentum lorem id, rhoncus nibh. Ut pellentesque posuere elementum. Sed a varius odio. Morbi rhoncus ligula libero, vel eleifend nunc tristique vitae. Fusce et sem dui. Aenean nec scelerisque tortor. Fusce malesuada accumsan magna vel tempus. Quisque mollis felis eu dolor tristique, sit amet auctor felis gravida. Sed libero lorem, molestie sed nisl in, accumsan tempor nisi. Fusce sollicitudin massa ut lacinia mattis. Sed vel eleifend lorem. Pellentesque vitae felis pretium, pulvinar elit eu, euismod sapien.
+<       operationId: findPets
+<       parameters:
+<         - name: tags
+<           in: query
+<           description: tags to filter by
+<           required: false
+<           style: form
+<           schema:
+<             type: array
+<             items:
+<               type: string
+<         - name: limit
+<           in: query
+<           description: maximum number of results to return
+<           required: false
+<           schema:
+<             type: integer
+<             format: int32
+<       responses:
+<         '200':
+<           description: pet response
+<           content:
+<             application/json:
+<               schema:
+<                 type: array
+<                 items:
+<                   $ref: '#/components/schemas/Pet'
+<         default:
+<           description: unexpected error
+<           content:
+<             application/json:
+<               schema:
+<                 $ref: '#/components/schemas/Error'
+81,83c42,44
+<     get:
+<       description: Returns a user based on a single ID, if the user does not have access to the pet
+<       operationId: find pet by id
+---
+>     put:
+>       description: modify some information a single pet based on the ID supplied
+>       operationId: modifyPet
+91a53,59
+>       requestBody:
+>         description: Pet to add to the store
+>         required: true
+>         content:
+>           application/json:
+>             schema:
+>               $ref: '#/components/schemas/ModifiedPet'
+138a107,116
+>       type: object
+>       required:
+>         - name  
+>       properties:
+>         name:
+>           type: string
+>         tag:
+>           type: string    
+> 
+>     ModifiedPet:
+```
+
+</details>
+
+## 検証
+
+### 実行コマンド
+
+```bash
+cd /path/to/openapi-diff-tool-examination
+docker build . -t diff-examination
+  
+cd /path/to/openapi-diff-tool-examination/1_endpoints
+docker run --rm -v $(pwd):/app/resources -it diff-examination before.yaml after.yaml
+```
+
+### 実行結果
+
+* `PUT /pets/{petId}`が追加されている
+* `POST /pets`が削除されている
+* `GET /pets/{petId}`が削除されている
+
+```
+### New Endpoints: 1
+--------------------
+PUT /pets/{id}  
+
+### Deleted Endpoints: 2
+------------------------
+POST /pets  
+GET /pets/{id}  
+
+### Modified Endpoints: None
+----------------------------
+```
